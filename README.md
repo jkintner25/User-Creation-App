@@ -6,6 +6,7 @@ The user receives feedback depending upon whether or not the form was submitted 
 ## Technologies
 This project was built using JavaScript, React.JS, Styled-Components, HTML5, and CSS3.
 
+## Test this App
 If you'd like to run this project on your machine locally, follow these steps:
 
 1. Clone this repository with the command ```git clone https://github.com/jkintner25/User-Creation-App.git```.
