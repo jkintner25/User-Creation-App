@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import hideIcon from '../images/hide.png';
 import viewIcon from '../images/view.png';
 import { emailRegex } from '../utils';
@@ -8,15 +9,13 @@ import {
   PasswordImg,
   NewUserForm,
   FormSection,
-  Button,
   LabelDiv,
   PasswordInputDiv,
   PasswordInstruction,
-  SuccessBox,
-  SuccessMessage
 } from '../styled/FormStyles'
 
 import { initialState, reducer } from './store';
+
 import {
   setName,
   setEmail,
@@ -26,9 +25,9 @@ import {
   setStateList,
   setState
 } from './store/actions'
-import SuccessComponent from './SuccessComponent';
 
-function UserCreationForm() {
+function UserCreationForm({ setNameOnSuccess }) {
+  const navigate = useNavigate();
 
   const [formStore, dispatch] = useReducer(reducer, initialState);
 
@@ -36,9 +35,20 @@ function UserCreationForm() {
   const [submitted, setSubmitted] = useState(false)
   const [passwordIcon, setPasswordIcon] = useState(hideIcon)
   const [passwordFieldType, setPasswordFieldType] = useState('password')
-  const [success, setSuccess] = useState(false)
+
+  //reload form component with initial state values
+  function resetForm() {
+    setSubmitted(false)
+    setName(dispatch, '')
+    setEmail(dispatch, '')
+    setPassword(dispatch, '')
+    setOccupation(dispatch, 'Select an Occupation...')
+    setState(dispatch, 'Select a State...')
+    setErrors({})
+  }
 
   useEffect(() => {
+    resetForm()
     const handlePromise = async () => {
       const res = await data;
       setOccupationList(dispatch, res.occupations)
@@ -112,12 +122,13 @@ function UserCreationForm() {
     if (!formStore.name) validationErrors['fullName'] = 'Please provide your full name.';
     if (!emailRegex.test(formStore.email)) validationErrors['email'] = 'Please provide a valid email.';
     if ((formStore.password.length < 8) || (formStore.password.includes(' '))) validationErrors['password'] = 'Invalid Password.';
-    if ((formStore.password.includes(' ')))
     if (formStore.occupation === 'Select an Occupation...') validationErrors['occupation'] = 'Please select an occupation.';
     if (formStore.state === 'Select a State...') validationErrors['state'] = 'Please select a state.';
 
     //only submit form if no errors exist
     if (!Object.values(validationErrors).length) {
+
+      setNameOnSuccess(formStore.name)
 
       const newUser = {
         'name': formStore.name,
@@ -134,7 +145,8 @@ function UserCreationForm() {
       });
       if (response.ok) {
         //replace form with success message
-        setSuccess(true)
+        console.log(response.status)
+        navigate("/success")
       }
     } else {
       //set error messages if they exist
@@ -142,90 +154,67 @@ function UserCreationForm() {
     }
   }
 
-  //reload form component with initial state values
-  function resetForm() {
-    setSubmitted(false)
-    setName(dispatch, '')
-    setEmail(dispatch, '')
-    setPassword(dispatch, '')
-    setOccupation(dispatch, 'Select an Occupation...')
-    setState(dispatch, 'Select a State...')
-    setErrors({})
-    setSuccess(false)
-  }
-
   return (
     <>
-      {/* renders new user form when success state is false */}
-      {!success ?
-        <>
-          <NewUserForm onSubmit={handleSubmit}>
-            <h1>Create Your Account</h1>
-            <FormSection>
-              <LabelDiv>
-                <label>Full Name <p>*</p></label>
-                {errors.fullName ? <li>{errors.fullName}</li> : null}
-              </LabelDiv>
-              <input type='text' placeholder='John Doe' value={formStore.name} onChange={updateName} />
-            </FormSection>
+      <NewUserForm onSubmit={handleSubmit}>
+        <h1>Create Your Account</h1>
+        <FormSection>
+          <LabelDiv>
+            <label>Full Name <p>*</p></label>
+            {errors.fullName ? <li>{errors.fullName}</li> : null}
+          </LabelDiv>
+          <input type='text' placeholder='John Doe' value={formStore.name} onChange={updateName} />
+        </FormSection>
 
-            <FormSection>
-              <LabelDiv>
-                <label>Email <p>*</p></label>
-                {errors.email ? <li>{errors.email}</li> : null}
-              </LabelDiv>
-              <input type='text' placeholder='john@email.com' value={formStore.email} onChange={updateEmail} />
-            </FormSection>
+        <FormSection>
+          <LabelDiv>
+            <label>Email <p>*</p></label>
+            {errors.email ? <li>{errors.email}</li> : null}
+          </LabelDiv>
+          <input type='text' placeholder='john@email.com' value={formStore.email} onChange={updateEmail} />
+        </FormSection>
 
-            <FormSection>
-              <LabelDiv>
-                <label>Password <p>*</p></label>
-                {errors.password ? <li>{errors.password}</li> : <PasswordInstruction>(At Least 8 characters)</PasswordInstruction>}
-              </LabelDiv>
-              <PasswordInputDiv>
-                <input type={passwordFieldType} autoComplete='on' value={formStore.password} onChange={updatePassword} />
-                <PasswordImg src={passwordIcon} alt='' onClick={togglePassword} />
-              </PasswordInputDiv>
-            </FormSection>
+        <FormSection>
+          <LabelDiv>
+            <label>Password <p>*</p></label>
+            {errors.password ? <li>{errors.password}</li> : <PasswordInstruction>(At Least 8 characters)</PasswordInstruction>}
+          </LabelDiv>
+          <PasswordInputDiv>
+            <input type={passwordFieldType} autoComplete='on' value={formStore.password} onChange={updatePassword} />
+            <PasswordImg src={passwordIcon} alt='' onClick={togglePassword} />
+          </PasswordInputDiv>
+        </FormSection>
 
-            <FormSection>
-              <LabelDiv>
-                <label>Occupation <p>*</p></label>
-                {errors.occupation ? <li>{errors.occupation}</li> : null}
-              </LabelDiv>
-              <select value={formStore.occupation} onChange={updateOccupation}>
-                <option value={'Select an Occupation...'}>Select an Occupation...</option>
-                {formStore.occupationList && formStore.occupationList.map((title, i) => {
-                  return <option key={title} value={title} >{title}</option>
-                })}
-              </select>
-            </FormSection>
+        <FormSection>
+          <LabelDiv>
+            <label>Occupation <p>*</p></label>
+            {errors.occupation ? <li>{errors.occupation}</li> : null}
+          </LabelDiv>
+          <select value={formStore.occupation} onChange={updateOccupation}>
+            <option value={'Select an Occupation...'}>Select an Occupation...</option>
+            {formStore.occupationList && formStore.occupationList.map((title, i) => {
+              return <option key={title} value={title} >{title}</option>
+            })}
+          </select>
+        </FormSection>
 
-            <FormSection>
-              <LabelDiv>
-                <label>State <p>*</p></label>
-                {errors.state ? <li>{errors.state}</li> : null}
-              </LabelDiv>
-              <select value={formStore.state} onChange={updateState}>
-                <option value={'Select a State...'}>Select a State...</option>
-                {formStore.stateList && formStore.stateList.map((state) => {
-                  return <option key={state.abbreviation} value={state.name} >{state.abbreviation} - {state.name}</option>
-                })}
-              </select>
-            </FormSection>
+        <FormSection>
+          <LabelDiv>
+            <label>State <p>*</p></label>
+            {errors.state ? <li>{errors.state}</li> : null}
+          </LabelDiv>
+          <select value={formStore.state} onChange={updateState}>
+            <option value={'Select a State...'}>Select a State...</option>
+            {formStore.stateList && formStore.stateList.map((state) => {
+              return <option key={state.abbreviation} value={state.name} >{state.abbreviation} - {state.name}</option>
+            })}
+          </select>
+        </FormSection>
 
-            <FormSection>
-              <button type='submit' >Submit</button>
-            </FormSection>
-          </NewUserForm>
-        </>
-        :
-        <>
-          {/* renders 'success' message when success state is true */}
-          <SuccessComponent formStore={formStore} resetForm={resetForm}/>
-        </>
-      }
-
+        <FormSection>
+          <button type='submit' >Submit</button>
+        </FormSection>
+      </NewUserForm>
     </>
   );
 };

@@ -4,12 +4,18 @@ import {
   SuccessMessage
 } from '../styled/FormStyles'
 
-const SuccessComponent = ({ formStore, resetForm }) => (
-  <SuccessBox>
-    <SuccessMessage>Success</SuccessMessage>
-    <p>Thanks {formStore.name}!</p>
-    <Button type='button' onClick={resetForm}>Back to Form</Button>
-  </SuccessBox>
-)
+import { useNavigate } from "react-router-dom";
+
+const SuccessComponent = ({ nameOnSuccess }) => {
+  const navigate = useNavigate()
+
+  return (
+    <SuccessBox>
+      <SuccessMessage>Success</SuccessMessage>
+      <p>Thanks {nameOnSuccess}!</p>
+      <Button type='button' onClick={() => navigate('/')}>Back to Form</Button>
+    </SuccessBox>
+  )
+}
 
 export default SuccessComponent;
