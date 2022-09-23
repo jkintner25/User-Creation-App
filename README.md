@@ -13,3 +13,9 @@ If you'd like to run this project on your machine locally, follow these steps:
 3. Run the command ```npm install``` to install all necessary dependcies.
 4. Run ```npm start```.
 5. Lastly, visit http://localhost:3000/ in your web browser.
+
+## Screenshots
+
+![Form](https://user-images.githubusercontent.com/95717139/191891314-0fd0fb29-dbdd-4add-9738-4cb42b248882.PNG)
+
+![Success](https://user-images.githubusercontent.com/95717139/191891138-09c70783-aea9-4593-908f-d23cf5254562.PNG)
