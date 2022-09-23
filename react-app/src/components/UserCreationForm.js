@@ -183,7 +183,7 @@ function UserCreationForm() {
                 {errors.password ? <li>{errors.password}</li> : <PasswordInstruction>(At Least 8 characters)</PasswordInstruction>}
               </LabelDiv>
               <PasswordInputDiv>
-                <input type={passwordFieldType} value={formStore.password} onChange={updatePassword} />
+                <input type={passwordFieldType} autoComplete='on' value={formStore.password} onChange={updatePassword} />
                 <PasswordImg src={passwordIcon} alt='' onClick={togglePassword} />
               </PasswordInputDiv>
             </FormSection>
