@@ -1,24 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import UserCreationForm from './components/UserCreationForm';
+import styled from 'styled-components';
+import Info from './components/Info';
+
+const Main = styled.div`
+display: flex;
+flex-direction: row;
+/* justify-content: center; */
+align-items: center;
+width: 100vw;
+height: 100vh;
+background-color: #300d38;
+color: white;
+`
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Main>
+      <Info />
+      <UserCreationForm />
+    </Main>
   );
 }
 
