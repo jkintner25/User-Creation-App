@@ -81,6 +81,22 @@ margin: 4px 0;
     }
 }
 `
+const Button = styled.button`
+width: 160px;
+height: 40px;
+font-size: larger;
+background-color: #ed6a7c;
+border: 1px solid #ed6a7c;
+border-radius: 4px;
+justify-content: space-between;
+transition: background-color 0.4s ease-out, border 0.4s ease-out;
+
+&:hover {
+    background-color: #ffa900;
+    border: 1px solid #ffa900;
+    cursor: pointer;
+}
+`
 
 const LabelDiv = styled.div`
 display: flex;
@@ -102,9 +118,33 @@ display: flex;
 flex-direction: row;
 align-items: center;
 `
+
 const PasswordInstruction = styled.p`
 font-size: 16px;
 margin: 0 30px 0 0;
+`
+
+const SuccessBox = styled.div`
+display: flex;
+flex-direction: column;
+background-color: #300d38;
+color: white;
+justify-content: center;
+align-items: center;
+margin: 0;
+width: 100%;
+height: 100%;
+
+& p {
+    font-size: 20px;
+    margin: 0 0 50px 0;
+}
+`
+
+const SuccessMessage = styled.h1`
+font-size: 80px;
+color: white;
+margin: 0 0 26px 0;
 `
 
 function UserCreationForm() {
@@ -120,6 +160,7 @@ function UserCreationForm() {
     const [submitted, setSubmitted] = useState(false)
     const [viewPasswordIcon, setViewPasswordIcon] = useState(hide)
     const [passwordFieldType, setPasswordFieldType] = useState('password')
+    const [success, setSuccess] = useState(false)
 
     const emailRegex = RegExp(/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i)
 
@@ -215,12 +256,14 @@ function UserCreationForm() {
 
         let validationErrors = {}
 
+        //provide a key for each error so that error can be removed when user updates related slice of state
         if (!fullName) validationErrors['fullName'] = 'Please provide your full name.';
         if (!emailRegex.test(email)) validationErrors['email'] = 'Please provide a valid email.';
         if (password.length < 8) validationErrors['password'] = 'Password requires 8 characters or more.';
         if (occupation === 'Select an Occupation...') validationErrors['occupation'] = 'Please select an occupation.';
         if (state === 'Select a State...') validationErrors['state'] = 'Please select a state.';
 
+        //only submit form if no errors exist
         if (!Object.values(validationErrors).length) {
 
             const newUser = {
@@ -237,74 +280,103 @@ function UserCreationForm() {
                 body: JSON.stringify(newUser)
             });
             if (response.ok) {
-                console.log(response.status)
+                //replace form with success message
+                setSuccess(true)
             }
         } else {
+            //set error messages if they exist
             setErrors(validationErrors)
         }
     }
 
+    //reload form component with initial state values
+    function resetForm() {
+        setSubmitted(false)
+        setFullName('')
+        setEmail('')
+        setPassword('')
+        setOccupation('Select an Occupation...')
+        setState('Select a State...')
+        setErrors({})
+        setSuccess(false)
+    }
+
     return (
         <>
-            <NewUserForm onSubmit={handleSubmit}>
-                <h1>Create Your Account</h1>
-                <FormSection>
-                    <LabelDiv>
-                        <label>Full Name <p className='asterisk'>*</p></label>
-                        {errors.fullName ? <li>{errors.fullName}</li> : null}
-                    </LabelDiv>
-                    <input type='text' placeholder='John Doe' value={fullName} onChange={updateName} />
-                </FormSection>
+        {/* renders new user form when success state is false */}
+            {!success ?
+                <>
+                    <NewUserForm onSubmit={handleSubmit}>
+                        <h1>Create Your Account</h1>
+                        <FormSection>
+                            <LabelDiv>
+                                <label>Full Name <p className='asterisk'>*</p></label>
+                                {errors.fullName ? <li>{errors.fullName}</li> : null}
+                            </LabelDiv>
+                            <input type='text' placeholder='John Doe' value={fullName} onChange={updateName} />
+                        </FormSection>
 
-                <FormSection>
-                    <LabelDiv>
-                        <label>Email <p className='asterisk'>*</p></label>
-                        {errors.email ? <li>{errors.email}</li> : null}
-                    </LabelDiv>
-                    <input type='text' placeholder='john@email.com' value={email} onChange={updateEmail} />
-                </FormSection>
+                        <FormSection>
+                            <LabelDiv>
+                                <label>Email <p className='asterisk'>*</p></label>
+                                {errors.email ? <li>{errors.email}</li> : null}
+                            </LabelDiv>
+                            <input type='text' placeholder='john@email.com' value={email} onChange={updateEmail} />
+                        </FormSection>
 
-                <FormSection>
-                    <LabelDiv>
-                        <label>Password <p className='asterisk'>*</p></label>
-                        {errors.password ? <li>{errors.password}</li> : <PasswordInstruction>(At Least 8 characters)</PasswordInstruction>}
-                    </LabelDiv>
-                    <PasswordInputDiv>
-                        <input type={passwordFieldType} value={password} onChange={updatePassword} />
-                        <PasswordImg className='' src={viewPasswordIcon} alt='' onClick={toggleViewPassword} />
-                    </PasswordInputDiv>
-                </FormSection>
+                        <FormSection>
+                            <LabelDiv>
+                                <label>Password <p className='asterisk'>*</p></label>
+                                {errors.password ? <li>{errors.password}</li> : <PasswordInstruction>(At Least 8 characters)</PasswordInstruction>}
+                            </LabelDiv>
+                            <PasswordInputDiv>
+                                <input type={passwordFieldType} value={password} onChange={updatePassword} />
+                                <PasswordImg className='' src={viewPasswordIcon} alt='' onClick={toggleViewPassword} />
+                            </PasswordInputDiv>
+                        </FormSection>
 
-                <FormSection>
-                    <LabelDiv>
-                        <label>Occupation <p className='asterisk'>*</p></label>
-                        {errors.occupation ? <li>{errors.occupation}</li> : null}
-                    </LabelDiv>
-                    <select value={occupation} onChange={updateOccupation}>
-                        <option value={'Select an Occupation...'}>Select an Occupation...</option>
-                        {occupations && occupations.map((title, i) => {
-                            return <option key={i} value={title} >{title}</option>
-                        })}
-                    </select>
-                </FormSection>
+                        <FormSection>
+                            <LabelDiv>
+                                <label>Occupation <p className='asterisk'>*</p></label>
+                                {errors.occupation ? <li>{errors.occupation}</li> : null}
+                            </LabelDiv>
+                            <select value={occupation} onChange={updateOccupation}>
+                                <option value={'Select an Occupation...'}>Select an Occupation...</option>
+                                {occupations && occupations.map((title, i) => {
+                                    return <option key={i} value={title} >{title}</option>
+                                })}
+                            </select>
+                        </FormSection>
 
-                <FormSection>
-                    <LabelDiv>
-                        <label>State <p className='asterisk'>*</p></label>
-                        {errors.state ? <li>{errors.state}</li> : null}
-                    </LabelDiv>
-                    <select value={state} onChange={updateState}>
-                        <option value={'Select a State...'}>Select a State...</option>
-                        {states && states.map((state, i) => {
-                            return <option key={i} value={state.name} >{state.abbreviation} - {state.name}</option>
-                        })}
-                    </select>
-                </FormSection>
+                        <FormSection>
+                            <LabelDiv>
+                                <label>State <p className='asterisk'>*</p></label>
+                                {errors.state ? <li>{errors.state}</li> : null}
+                            </LabelDiv>
+                            <select value={state} onChange={updateState}>
+                                <option value={'Select a State...'}>Select a State...</option>
+                                {states && states.map((state, i) => {
+                                    return <option key={i} value={state.name} >{state.abbreviation} - {state.name}</option>
+                                })}
+                            </select>
+                        </FormSection>
 
-                <FormSection>
-                    <button type='submit' >Submit</button>
-                </FormSection>
-            </NewUserForm>
+                        <FormSection>
+                            <button type='submit' >Submit</button>
+                        </FormSection>
+                    </NewUserForm>
+                </>
+                :
+                <>
+                {/* renders 'success' message when success state is true */}
+                    <SuccessBox>
+                        <SuccessMessage>Success</SuccessMessage>
+                        <p>Thanks {fullName}!</p>
+                        <Button type='button' onClick={resetForm}>Back to Form</Button>
+                    </SuccessBox>
+                </>
+            }
+
         </>
     );
 };
