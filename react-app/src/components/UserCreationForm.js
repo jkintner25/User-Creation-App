@@ -145,7 +145,6 @@ function UserCreationForm({ setNameOnSuccess }) {
       });
       if (response.ok) {
         //replace form with success message
-        console.log(response.status)
         navigate("/success")
       }
     } else {
