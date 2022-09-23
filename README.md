@@ -4,7 +4,7 @@ User Creation App is a simple frontend application that allows a user to submit 
 The user receives feedback depending upon whether or not the form was submitted succesfully.
 
 ## Technologies
-This project was built using JavaScript, React.JS, Styled-Components, HTML5, and CSS3.
+This project was built using ***JavaScript***, ***React.JS***, ***Styled-Components***, ***HTML5***, and ***CSS3***.
 
 ## Test this App
 If you'd like to run this project on your machine locally, follow these steps:
