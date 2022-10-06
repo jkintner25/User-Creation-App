@@ -2,7 +2,7 @@ import { useEffect, useReducer, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import hideIcon from '../images/hide.png';
 import viewIcon from '../images/view.png';
-import { emailRegex } from '../utils';
+import { setErrors, updateField, validateForm } from '../utils';
 import data from '../utils/data';
 
 import {
@@ -23,7 +23,12 @@ import {
   setOccupationList,
   setOccupation,
   setStateList,
-  setState
+  setState,
+  setErrorsName,
+  setErrorsEmail,
+  setErrorsPassword,
+  setErrorsOccupation,
+  setErrorsState
 } from './store/actions'
 
 function UserCreationForm({ setNameOnSuccess }) {
@@ -31,20 +36,17 @@ function UserCreationForm({ setNameOnSuccess }) {
 
   const [formStore, dispatch] = useReducer(reducer, initialState);
 
-  const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false)
   const [passwordIcon, setPasswordIcon] = useState(hideIcon)
   const [passwordFieldType, setPasswordFieldType] = useState('password')
 
   //reload form component with initial state values
   function resetForm() {
-    setSubmitted(false)
     setName(dispatch, '')
     setEmail(dispatch, '')
     setPassword(dispatch, '')
     setOccupation(dispatch, 'Select an Occupation...')
     setState(dispatch, 'Select a State...')
-    setErrors({})
+    // setErrors({})
   }
 
   useEffect(() => {
@@ -56,51 +58,6 @@ function UserCreationForm({ setNameOnSuccess }) {
     }
     handlePromise()
   }, [])
-
-  function updateName(e) {
-    setName(dispatch, e.target.value)
-    if (submitted && errors.fullName) setErrors(errors => {
-      const newErrors = { ...errors };
-      delete newErrors.fullName;
-      return newErrors;
-    })
-  };
-
-  function updateEmail(e) {
-    setEmail(dispatch, e.target.value)
-    if (errors.email) setErrors(errors => {
-      const newErrors = { ...errors };
-      delete newErrors.email;
-      return newErrors;
-    })
-  };
-
-  function updatePassword(e) {
-    setPassword(dispatch, e.target.value)
-    if (errors.password) setErrors(errors => {
-      const newErrors = { ...errors };
-      delete newErrors.password;
-      return newErrors;
-    })
-  };
-
-  function updateOccupation(e) {
-    setOccupation(dispatch, e.target.value)
-    if (errors.occupation) setErrors(errors => {
-      const newErrors = { ...errors };
-      delete newErrors.occupation;
-      return newErrors;
-    })
-  };
-
-  function updateState(e) {
-    setState(dispatch, e.target.value)
-    if (errors.state) setErrors(errors => {
-      const newErrors = { ...errors };
-      delete newErrors.state;
-      return newErrors;
-    })
-  };
 
   function togglePassword() {
     if (passwordIcon === hideIcon) setPasswordIcon(viewIcon) //check up on this
@@ -114,16 +71,7 @@ function UserCreationForm({ setNameOnSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    setSubmitted(true)
-
-    const validationErrors = {}
-
-    //provide a key for each error so that error can be removed when user updates related slice of state
-    if (!formStore.name) validationErrors['fullName'] = 'Please provide your full name.';
-    if (!emailRegex.test(formStore.email)) validationErrors['email'] = 'Please provide a valid email.';
-    if ((formStore.password.length < 8) || (formStore.password.includes(' '))) validationErrors['password'] = 'Invalid Password.';
-    if (formStore.occupation === 'Select an Occupation...') validationErrors['occupation'] = 'Please select an occupation.';
-    if (formStore.state === 'Select a State...') validationErrors['state'] = 'Please select a state.';
+    const validationErrors = validateForm(formStore)
 
     //only submit form if no errors exist
     if (!Object.values(validationErrors).length) {
@@ -146,10 +94,19 @@ function UserCreationForm({ setNameOnSuccess }) {
       if (response.ok) {
         //replace form with success message
         navigate("/success")
+      } else {
+        //replace for with server failure message
+        navigate("/failure")
       }
     } else {
       //set error messages if they exist
-      setErrors(validationErrors)
+      setErrors(validationErrors,
+        setErrorsName,
+        setErrorsEmail,
+        setErrorsPassword,
+        setErrorsOccupation,
+        setErrorsState,
+        dispatch)
     }
   }
 
@@ -160,26 +117,26 @@ function UserCreationForm({ setNameOnSuccess }) {
         <FormSection>
           <LabelDiv>
             <label>Full Name <p>*</p></label>
-            {errors.fullName ? <li>{errors.fullName}</li> : null}
+            {formStore.nameError ? <li>{formStore.nameError}</li> : null}
           </LabelDiv>
-          <input type='text' placeholder='John Doe' value={formStore.name} onChange={updateName} />
+          <input type='text' placeholder='John Doe' value={formStore.name} onChange={(e)=>updateField(e.target.value, setName, setErrorsName, dispatch)} />
         </FormSection>
 
         <FormSection>
           <LabelDiv>
             <label>Email <p>*</p></label>
-            {errors.email ? <li>{errors.email}</li> : null}
+            {formStore.emailError ? <li>{formStore.emailError}</li> : null}
           </LabelDiv>
-          <input type='text' placeholder='john@email.com' value={formStore.email} onChange={updateEmail} />
+          <input type='text' placeholder='john@email.com' value={formStore.email} onChange={(e)=>updateField(e.target.value, setEmail, setErrorsEmail, dispatch)} />
         </FormSection>
 
         <FormSection>
           <LabelDiv>
             <label>Password <p>*</p></label>
-            {errors.password ? <li>{errors.password}</li> : <PasswordInstruction>(At Least 8 characters)</PasswordInstruction>}
+            {formStore.passwordError ? <li>{formStore.passwordError}</li> : <PasswordInstruction>(At Least 8 characters)</PasswordInstruction>}
           </LabelDiv>
           <PasswordInputDiv>
-            <input type={passwordFieldType} autoComplete='on' value={formStore.password} onChange={updatePassword} />
+            <input type={passwordFieldType} autoComplete='on' value={formStore.password} onChange={(e)=>updateField(e.target.value, setPassword, setErrorsPassword, dispatch)} />
             <PasswordImg src={passwordIcon} alt='' onClick={togglePassword} />
           </PasswordInputDiv>
         </FormSection>
@@ -187,9 +144,9 @@ function UserCreationForm({ setNameOnSuccess }) {
         <FormSection>
           <LabelDiv>
             <label>Occupation <p>*</p></label>
-            {errors.occupation ? <li>{errors.occupation}</li> : null}
+            {formStore.occupationError ? <li>{formStore.occupationError}</li> : null}
           </LabelDiv>
-          <select value={formStore.occupation} onChange={updateOccupation}>
+          <select value={formStore.occupation} onChange={(e)=>updateField(e.target.value, setOccupation, setErrorsOccupation, dispatch)}>
             <option value={'Select an Occupation...'}>Select an Occupation...</option>
             {formStore.occupationList && formStore.occupationList.map((title, i) => {
               return <option key={title} value={title} >{title}</option>
@@ -200,9 +157,9 @@ function UserCreationForm({ setNameOnSuccess }) {
         <FormSection>
           <LabelDiv>
             <label>State <p>*</p></label>
-            {errors.state ? <li>{errors.state}</li> : null}
+            {formStore.stateError ? <li>{formStore.stateError}</li> : null}
           </LabelDiv>
-          <select value={formStore.state} onChange={updateState}>
+          <select value={formStore.state} onChange={(e)=>updateField(e.target.value, setState, setErrorsState, dispatch)}>
             <option value={'Select a State...'}>Select a State...</option>
             {formStore.stateList && formStore.stateList.map((state) => {
               return <option key={state.abbreviation} value={state.name} >{state.abbreviation} - {state.name}</option>

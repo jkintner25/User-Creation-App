@@ -4,6 +4,7 @@ import Wallpaper from './components/Wallpaper';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import SuccessComponent from './components/SuccessComponent';
 import { useState } from 'react';
+import FailComponent from './components/FailComponent';
 
 const Main = styled.div`
   display: flex;
@@ -25,6 +26,7 @@ const App = () => {
         <Routes>
           <Route exact path='/' element={<UserCreationForm setNameOnSuccess={setNameOnSuccess} />} />
           <Route exact path='/success' element={<SuccessComponent nameOnSuccess={nameOnSuccess} />} />
+          <Route exact path='/failure' element={<FailComponent />} />
         </Routes>
       </Main>
     </BrowserRouter>
